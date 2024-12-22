@@ -19,7 +19,7 @@ class Tiamat(dspy.Module):
 		output = self.answer_question(context=self.context, last_response=self.last_response, student_message=message)
 		self.context = output.new_context
 		self.last_response = output.answer
-		return output.answer
+		return output
 
 class AnswerQuestion(dspy.Signature):
 	"""

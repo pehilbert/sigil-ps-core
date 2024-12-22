@@ -1,5 +1,5 @@
 import flask
-import tiamat
+import tiamat as tiamat
 
 from flask_cors import CORS
 
@@ -33,11 +33,11 @@ def get_widget():
 
     response = chat(message)
 
-    print(f"       Response: {response}")
+    print(f"       Response: {response.answer}")
     print(f"Updated context: {chat.context}")
 
     # Return the widget as JSON
-    return flask.jsonify({'response': response})
+    return flask.jsonify({'response': response.answer})
 
 # Run the app
 if __name__ == '__main__':
