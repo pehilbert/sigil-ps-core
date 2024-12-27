@@ -3,6 +3,7 @@ import json
 
 EXPECTED_DATASET_JSON = '''
 {
+    "name": "Example dataset",
     "config": {
         "example_outputs": true
     },
@@ -20,9 +21,9 @@ def json_to_examples(json_str):
         json_data = dict(json.loads(json_str))
 
         if json_data["config"]["example_outputs"]:
-            json_data["data"] = [Example(input=data_point["input"], output=data_point["output"]).with_inputs("input") for data_point in json_data["data"]]
+            json_data["data"] = [Example(message=data_point["input"], example_output=data_point["output"]).with_inputs("message") for data_point in json_data["data"]]
         else:
-            json_data["data"] = [Example(input=data_point["input"]).with_inputs("input") for data_point in json_data["data"]]
+            json_data["data"] = [Example(message=data_point["input"]).with_inputs("message") for data_point in json_data["data"]]
 
         return json_data
     except:
