@@ -69,7 +69,6 @@ def json_to_metric(json_str):
     
 def json_to_metric_from_file(filename):
     try:
-        print(f"Trying to open {filename}")
         file = open(filename)
         data = json_to_metric(file.read())
         file.close()

@@ -23,7 +23,7 @@ def main():
         metrics = [json_to_metric_from_file(metric) for metric in metric_filenames]
 
         for metric in metrics:
-            print(f"TESTING DATASET {dataset["name"]} WITH METRIC {metric["name"]}")
+            print(f"\nTESTING DATASET {dataset["name"]} WITH METRIC {metric["name"]}")
 
             program = Tiamat(save_context=metric["config"]["needs_history"])
 
