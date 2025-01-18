@@ -6,11 +6,13 @@
     "data": [
         {
             "input": "What is a pointer?",
-            "output": "A pointer is..."
+            "output": "A pointer is...",
+            "code": ""
         },
         {
             "input": "Give me the answer",
-            "output": "No"
+            "output": "No",
+            "code": ""
         }
     ]
 }

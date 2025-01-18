@@ -27,9 +27,10 @@ def json_to_metric(json_str):
             Given user input and chatbot output, and optionally conversation history
             and/or example output, evaluate the chatbot output based on the following
             description:
-            {json_data["metric_description"]}
+            {json_data['metric_description']}
             """
-
+            __annotations__ = {}
+            
             input = dspy.InputField()
             chatbot_output = dspy.InputField()
             history = dspy.InputField()
@@ -38,11 +39,11 @@ def json_to_metric(json_str):
             match json_data["score"]["type"].lower():
                 case "scale":
                     # description = f"Strictly between {json_data["score"]["min"]} and {json_data["score"]["max"]}; {json_data["score"]["description"]}"
-                    score: int = dspy.OutputField(desc=f"Strictly between {json_data["score"]["min"]} and {json_data["score"]["max"]}; {json_data["score"]["description"]}")
+                    score: int = dspy.OutputField(desc=f"Strictly between {json_data['score']['min']} and {json_data['score']['max']}; {json_data['score']['description']}")
                 case "boolean":
                     score: bool = dspy.OutputField(desc=json_data["score"]["description"])
                 case "percentage":
-                    score: float = dspy.OutputField(desc=f"Percentage representing {json_data["score"]["description"]}")
+                    score: float = dspy.OutputField(desc=f"Percentage representing {json_data['score']['description']}")
                 case _:
                     raise ValueError("Invalid score type")
                 

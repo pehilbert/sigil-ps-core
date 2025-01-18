@@ -54,5 +54,5 @@ class AnswerQuestionWithContext(dspy.Signature):
     student_message = dspy.InputField(desc="Could be a question, their code, their problem, etc.")
     code = dspy.InputField(desc="The student may provide code with their message to help understand what they're working on")
 
-    answer = dspy.OutputField(desc="Concise response to student's message (no source code answers)")
     new_context = dspy.OutputField(desc="Add to and/or update current context based on new message and/or answer")
+    answer = dspy.OutputField(desc="Concise response to student's message (no source code answers)")

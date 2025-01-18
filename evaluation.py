@@ -23,14 +23,14 @@ def main():
         metrics = [json_to_metric_from_file(metric) for metric in metric_filenames]
 
         for metric in metrics:
-            print(f"\nTESTING DATASET {dataset["name"]} WITH METRIC {metric["name"]}")
+            print(f"\nTESTING DATASET {dataset['name']} WITH METRIC {metric['name']}")
 
             program = Tiamat(save_context=metric["config"]["needs_history"])
 
             if metric["config"]["needs_example_output"] and not dataset["config"]["example_outputs"]:
                 raise ValueError("Metric needs example outputs not provided by dataset")
 
-            evaluator = Evaluate(devset=dataset["data"], num_threads=1, display_progress=True, display_table=True)
+            evaluator = Evaluate(devset=dataset["data"], num_threads=1, display_progress=True, display_table=True, return_outputs=True)
             evaluator(program, metric=metric["metric"])
 
 if __name__ == "__main__":

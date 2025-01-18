@@ -10,7 +10,8 @@ EXPECTED_DATASET_JSON = '''
     "data": [
         {
             "input": "What is a pointer?",
-            "output": "A pointer is..."
+            "output": "A pointer is...",
+            "code": ""
         }
     ]
 }
@@ -21,9 +22,9 @@ def json_to_examples(json_str):
         json_data = dict(json.loads(json_str))
 
         if json_data["config"]["example_outputs"]:
-            json_data["data"] = [Example(message=data_point["input"], example_output=data_point["output"]).with_inputs("message") for data_point in json_data["data"]]
+            json_data["data"] = [Example(message=data_point["input"], code=data_point["code"], example_output=data_point["output"]).with_inputs("message") for data_point in json_data["data"]]
         else:
-            json_data["data"] = [Example(message=data_point["input"]).with_inputs("message") for data_point in json_data["data"]]
+            json_data["data"] = [Example(message=data_point["input"], code=data_point["code"]).with_inputs("message", "code") for data_point in json_data["data"]]
 
         return json_data
     except:
