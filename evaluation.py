@@ -1,4 +1,3 @@
-from dspy.evaluate import Evaluate
 from tiamat import Tiamat
 import json
 from sys import argv
@@ -7,6 +6,7 @@ from data_handling.dataset_builder import json_to_examples_from_file
 from metrics_handling.metric_builder import json_to_metric_from_file
 
 def main():
+    # TODO: Provide output filename in arguments
     if len(argv) != 2:
         print("Usage: evaluate test.json")
 
@@ -18,20 +18,44 @@ def main():
     dataset_filenames = json_data["datasets"]
     metric_filenames = json_data["metrics"]
 
-    for dataset in dataset_filenames:
-        dataset = json_to_examples_from_file(dataset)
-        metrics = [json_to_metric_from_file(metric) for metric in metric_filenames]
+    metrics = [json_to_metric_from_file(metric_file) for metric_file in metric_filenames]
 
-        for metric in metrics:
-            print(f"\nTESTING DATASET {dataset['name']} WITH METRIC {metric['name']}")
+    for dataset_file in dataset_filenames:
+        dataset = json_to_examples_from_file(dataset_file)
 
-            program = Tiamat(save_context=metric["config"]["needs_history"])
+        # TODO: Add a progress bar or something similar to the built in DSPy evaluator
+        print(f"Evaluating dataset: {dataset['name']}")
 
-            if metric["config"]["needs_example_output"] and not dataset["config"]["example_outputs"]:
-                raise ValueError("Metric needs example outputs not provided by dataset")
+        metric_totals = {metric["name"]: 0 for metric in metrics}
+        program = Tiamat()
 
-            evaluator = Evaluate(devset=dataset["data"], num_threads=1, display_progress=True, display_table=True, return_outputs=True)
-            evaluator(program, metric=metric["metric"])
+        for example in dataset["data"]:
+            # Get chatbot response based on inputs
+            output = program(example.message, example.code)
+
+            # TODO: Log chatbot response to file with example output for reference if provided
+            ##
+
+            # Run response through each metric
+            for metric in metrics:
+                if metric["config"]["needs_example_output"] and not dataset["config"]["example_outputs"]:
+                    raise ValueError("Metric needs example outputs not provided by dataset")
+                
+                # Add score to total for metric
+                score = metric["metric"](example, output)
+                metric_totals[metric["name"]] += score
+
+                # TODO: Log response's score for metric to file
+                ##
+
+        # TODO: Log average scores for each metric to file
+        ##
+
+        # TODO: Print a nice summary of test for current dataset to console
+        print(f"Average scores for {dataset['name']}:")
+
+        for metric_name in metric_totals:
+            print(f"{metric_name}: {metric_totals[metric_name]} / {len(dataset['data'])} = {metric_totals[metric_name] / len(dataset['data'])}")
 
 if __name__ == "__main__":
     main()
