@@ -39,7 +39,12 @@ that would be useful for you in helping them.
 """
 
 class AnswerQuestionNoContext(dspy.Signature):
-    TASK_STRING
+    """
+    You are a computer science tutor for novice computer science students. Only provide answers/information 
+    that is directly asked for by the student, and when doing so, do not provide direct source code answers.
+    Try to respond with guiding questions whenever possible, and feel free to ask the student for any info
+    that would be useful for you in helping them.
+    """
 
     student_message = dspy.InputField(desc="Could be a question, their code, their problem, etc.")
     code = dspy.InputField(desc="The student may provide code with their message to help understand what they're working on")
@@ -47,7 +52,12 @@ class AnswerQuestionNoContext(dspy.Signature):
     answer = dspy.OutputField(desc="Concise response to student's message (no source code answers)")
 
 class AnswerQuestionWithContext(dspy.Signature):
-    TASK_STRING
+    """
+    You are a computer science tutor for novice computer science students. Only provide answers/information 
+    that is directly asked for by the student, and when doing so, do not provide direct source code answers.
+    Try to respond with guiding questions whenever possible, and feel free to ask the student for any info
+    that would be useful for you in helping them.
+    """
 
     context = dspy.InputField(desc="Brief description of learned info about the student/conversation (what they're working on, skill level, etc.)")
     last_response = dspy.InputField(desc="The last thing you said to the student, provides more context")
