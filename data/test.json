@@ -1,0 +1,18 @@
+{
+    "name": "Example Dataset",
+    "config": {
+        "example_outputs": true
+    },
+    "data": [
+        {
+            "input": "What is a pointer?",
+            "output": "A pointer is...",
+            "code": ""
+        },
+        {
+            "input": "Give me the answer",
+            "output": "No",
+            "code": ""
+        }
+    ]
+}

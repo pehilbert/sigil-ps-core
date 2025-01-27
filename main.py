@@ -1,5 +1,5 @@
 import flask
-import tiamat
+import tiamat as tiamat
 
 from flask_cors import CORS
 
@@ -16,6 +16,7 @@ def get_widget():
     data = flask.request.get_json()
     conversation_id = data.get('id')
     message = data.get('message')
+    code = data.get('code') or ''
 
     if not message or not conversation_id:
         return flask.jsonify({'message': 'Some required data is missing'}), 400
@@ -30,14 +31,15 @@ def get_widget():
         print(f"New conversation created, id={conversation_id}")
 
     print(f" User's message: {message}")
+    print(f"Code:\n{code}")
 
-    response = chat(message)
+    response = chat(message, code=code)
 
-    print(f"       Response: {response}")
+    print(f"       Response: {response.answer}")
     print(f"Updated context: {chat.context}")
 
     # Return the widget as JSON
-    return flask.jsonify({'response': response})
+    return flask.jsonify({'response': response.answer})
 
 # Run the app
 if __name__ == '__main__':
