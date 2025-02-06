@@ -36,7 +36,6 @@ def get_widget():
     response = chat(message, code=code)
 
     print(f"       Response: {response.answer}")
-    print(f"Updated context: {chat.context}")
 
     # Return the widget as JSON
     return flask.jsonify({'response': response.answer})
