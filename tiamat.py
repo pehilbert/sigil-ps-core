@@ -10,48 +10,19 @@ gpt = dspy.LM('openai/gpt-4o-mini')
 dspy.settings.configure(lm=gpt)
 
 class Tiamat(dspy.Module):
-    def __init__(self, save_context=True):
+    def __init__(self):
         self.context = ""
         self.last_response = ""
-
-        if save_context:
-            self.answer_question = dspy.Predict(AnswerQuestionWithContext)
-        else:
-            self.answer_question = dspy.Predict(AnswerQuestionNoContext)
-        
-        self.save_context = save_context
+        self.answer_question = dspy.Predict(Answer)
 
     def forward(self, message, code=""):     
-        if self.save_context:
-            output = self.answer_question(context=self.context, last_response=self.last_response, student_message=message, code=code)
-            self.context = output.new_context
-            self.last_response = output.answer
-        else:
-            output = self.answer_question(student_message=message, code=code)
+        output = self.answer_question(context=self.context, last_response=self.last_response, student_message=message, code=code)
+        self.context = output.new_context
+        self.last_response = output.answer
 
         return output
 
-TASK_STRING = """
-You are a computer science tutor for novice computer science students. Only provide answers/information 
-that is directly asked for by the student, and when doing so, do not provide direct source code answers.
-Try to respond with guiding questions whenever possible, and feel free to ask the student for any info
-that would be useful for you in helping them.
-"""
-
-class AnswerQuestionNoContext(dspy.Signature):
-    """
-    You are a computer science tutor for novice computer science students. Only provide answers/information 
-    that is directly asked for by the student, and when doing so, do not provide direct source code answers.
-    Try to respond with guiding questions whenever possible, and feel free to ask the student for any info
-    that would be useful for you in helping them.
-    """
-
-    student_message = dspy.InputField(desc="Could be a question, their code, their problem, etc.")
-    code = dspy.InputField(desc="The student may provide code with their message to help understand what they're working on")
-
-    answer = dspy.OutputField(desc="Concise response to student's message (no source code answers)")
-
-class AnswerQuestionWithContext(dspy.Signature):
+class Answer(dspy.Signature):
     """
     You are a computer science tutor for novice computer science students. Only provide answers/information 
     that is directly asked for by the student, and when doing so, do not provide direct source code answers.
