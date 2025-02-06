@@ -37,7 +37,7 @@ class Answer(dspy.Signature):
     """
 
     history = dspy.InputField(desc="Conversation history for context")
-    student_message = dspy.InputField(desc="Could be a question, their code, their problem, etc.")
-    code = dspy.InputField(desc="The student may provide code with their message to help understand what they're working on")
+    code = dspy.InputField(desc="Code provided by the student, usually in the following format:\ndescription of code (file name):\nthe code")
+    student_message = dspy.InputField(desc="Message from the student")
 
     answer = dspy.OutputField(desc="Concise response to student's message (no source code answers)")
