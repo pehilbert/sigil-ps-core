@@ -10,30 +10,34 @@ gpt = dspy.LM('openai/gpt-4o-mini')
 dspy.settings.configure(lm=gpt)
 
 class Tiamat(dspy.Module):
-    def __init__(self):
-        self.context = ""
-        self.last_response = ""
+    def __init__(self, history_capacity=6):
+        self.history_capacity = history_capacity
+        self.history = []
         self.answer_question = dspy.Predict(Answer)
+        
+    def forward(self, message, code=""):
+        history_to_provide = self.history
 
-    def forward(self, message, code=""):     
-        output = self.answer_question(context=self.context, last_response=self.last_response, student_message=message, code=code)
-        self.context = output.new_context
-        self.last_response = output.answer
+        if len(self.history) > self.history_capacity:
+            history_to_provide = self.history[len(self.history) - self.history_capacity:]
+
+        output = self.answer_question(history=history_to_provide, student_message=message, code=code)
+
+        self.history.append(f"Student: {message}")
+        self.history.append(f"Tiamat: {output.answer}")
 
         return output
 
 class Answer(dspy.Signature):
     """
-    You are a computer science tutor for novice computer science students. Only provide answers/information 
+    You are Tiamat, a computer science tutor for novice computer science students. Only provide answers/information 
     that is directly asked for by the student, and when doing so, do not provide direct source code answers.
     Try to respond with guiding questions whenever possible, and feel free to ask the student for any info
     that would be useful for you in helping them.
     """
 
-    context = dspy.InputField(desc="Brief description of learned info about the student/conversation (what they're working on, skill level, etc.)")
-    last_response = dspy.InputField(desc="The last thing you said to the student, provides more context")
+    history = dspy.InputField(desc="Conversation history for context")
     student_message = dspy.InputField(desc="Could be a question, their code, their problem, etc.")
     code = dspy.InputField(desc="The student may provide code with their message to help understand what they're working on")
 
-    new_context = dspy.OutputField(desc="Add to and/or update current context based on new message and/or answer")
     answer = dspy.OutputField(desc="Concise response to student's message (no source code answers)")
