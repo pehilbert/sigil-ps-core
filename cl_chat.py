@@ -4,6 +4,9 @@ from dspy import inspect_history
 MAX_MSG_LENGTH = 200
 
 chat = Tiamat()
+history = []
+feedback = []
+personalization = ""
 
 def truncate_string(s, max_length) :
     if len(s) > max_length:
@@ -25,7 +28,10 @@ while True:
     else:
         code = ""
 
-    output = chat(message, code)
+    output = chat(message, code, history, personalization)
+
+    history.append(f"Student: {message}")
+    history.append(f"Tiamat: {output.answer}")
 
     if show_history:
         print("\nDSPy History:\n")
@@ -47,7 +53,9 @@ while True:
         else:
             helpful = "Unhelpful"
 
-        chat.provide_feedback(response, helpful, reason)
+        feedback.append(f"Response: {response}\n{helpful}: {reason}")
+        feedback_result = chat.provide_feedback(feedback)
+        personalization = feedback_result.personalization
 
         if show_history:
             print("\nDSPy History:\n")
