@@ -63,10 +63,12 @@ def prompt_tiamat():
 
 @app.route('/api/feedback', methods=['POST'])
 def get_feedback():
+    print("Feedback received")
     #ensures database is created and tables are initialized
     try:
         init_database(mysql)
-    except:
+    except Exception as e:
+        print("Error occurred while initializing database", e)
         return flask.jsonify({'message': 'Something went wrong with database initialization'}), 400
 
     # Extract the prompt from the request
@@ -98,5 +100,5 @@ def get_feedback():
     return flask.jsonify({'rating': rating, 'message': message, 'response': response, 'code': code})
 
 # Run the app
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)
