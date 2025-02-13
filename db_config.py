@@ -23,13 +23,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
 class Config(object):
     """Configure me so examples work"""
 
-    HOST = ''      # fill with your host address
-    DATABASE = ''  # fill with your database
-    USER = ''      # fill with your username
-    PASSWORD = ''  # fill with your user's password
+    HOST = os.getenv("MYSQL_HOST")      # fill with your host address
+    DATABASE = 'tiamat_db'  # fill with your database
+    USER = os.getenv("MYSQL_USER")      # fill with your username
+    PASSWORD = os.getenv("MYSQL_PASSWORD")  # fill with your user's password
     PORT = 3306
 
     CHARSET = 'utf8'
