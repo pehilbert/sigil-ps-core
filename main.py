@@ -21,36 +21,44 @@ mysql = MySQL(app)
 
 CORS(app)
 
-conversations = {}
+chat = tiamat.Tiamat()
 
-# Define a route
+# Prompts the Tiamat module with a message and optional code and history,
+# and retrieves personalization instructions from the database if possible,
+# then returns the chatbot's response
 @app.route('/api/prompt', methods=['POST'])
-def get_widget():
-    # Extract the prompt from the request
+def prompt_tiamat():
+    # Extract necessary data from the request
     data = flask.request.get_json()
-    conversation_id = data.get('id')
+    user_id = data.get('id')
     message = data.get('message')
     code = data.get('code') or ''
+    history = data.get('history') or []
 
-    if not message or not conversation_id:
+    # Reject request if required data is missing
+    if not message or not user_id:
         return flask.jsonify({'message': 'Some required data is missing'}), 400
 
-    if conversation_id in conversations:
-        chat = conversations[conversation_id]
-        print(f"Existing conversation detected, id={conversation_id}")
-    else:
-        chat = tiamat.Tiamat()
-        conversations[conversation_id] = chat
-        print(f"New conversation created, id={conversation_id}")
-
-    print(f" User's message: {message}")
+    # Log the data
+    print(f"User ID: {user_id}")
+    print(f"User's message: {message}")
     print(f"Code:\n{code}")
+    print(f"History:\n{history}")
+    
+    # TODO: Retrieve user's personalization instructions from the database
+    personalization = ""
+    
+    # Get chatbot response and log it
+    response = chat(
+        message, 
+        code=code, 
+        history=history, 
+        personalization=personalization
+    )
 
-    response = chat(message, code=code)
+    print(f"Tiamat Response: {response.answer}")
 
-    print(f"       Response: {response.answer}")
-
-    # Return the widget as JSON
+    # Return the response
     return flask.jsonify({'response': response.answer})
 
 @app.route('/api/feedback', methods=['POST'])

@@ -13,35 +13,28 @@ class Tiamat(dspy.Module):
     def __init__(self, history_capacity=6, feedback_capacity=3):
         self.history_capacity = history_capacity
         self.feedback_capacity = feedback_capacity
-        self.history = []
-        self.feedback = []
-        self.personalization = ""
 
         self.personalize = dspy.ChainOfThought(Personalize)
         self.answer_question = dspy.Predict(Answer)
     
-    def provide_feedback(self, response, feedback, reason):
-        self.feedback.append(f"Response: {response}\n{feedback}: {reason}")
+    # Given a list of feedback, get personalized instructions to improve future responses
+    def provide_feedback(self, feedback):
+        feedback_to_provide = feedback
 
-        feedback_to_provide = self.feedback
-
-        if len(self.feedback) > self.feedback_capacity:
-            feedback_to_provide = self.feedback[len(self.feedback) - self.feedback_capacity:]
+        if len(feedback) > self.feedback_capacity:
+            feedback_to_provide = feedback[len(feedback) - self.feedback_capacity:]
 
         output = self.personalize(feedback=feedback_to_provide)
-        self.personalization = output.personalization
+        return output
 
-    def forward(self, message, code=""):
-        history_to_provide = self.history
+    # Given a student message, code, and history, provide an answer to the message
+    def forward(self, message, code="", history=[], personalization=""):
+        history_to_provide = history
 
-        if len(self.history) > self.history_capacity:
-            history_to_provide = self.history[len(self.history) - self.history_capacity:]
+        if len(history) > self.history_capacity:
+            history_to_provide = history[len(history) - self.history_capacity:]
 
-        output = self.answer_question(history=history_to_provide, personalization_instructions=self.personalization, student_message=message, code=code)
-
-        self.history.append(f"Student: {message}")
-        self.history.append(f"Tiamat: {output.answer}")
-
+        output = self.answer_question(history=history_to_provide, personalization_instructions=personalization, student_message=message, code=code)
         return output
 
 
