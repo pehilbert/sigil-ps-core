@@ -6,7 +6,7 @@ def init_database(sqlObj):
     cursor.execute("CREATE DATABASE IF NOT EXISTS tiamat_db")
     cursor.execute("USE tiamat_db")
     cursor.execute("CREATE TABLE IF NOT EXISTS users (userID INT PRIMARY KEY, personalizedPrompt TEXT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS interactions (userID INT, userMessage TEXT, code TEXT, tiamatResponse TEXT, rating INT, FOREIGN KEY (userID) REFERENCES users(userID))")
+    cursor.execute("CREATE TABLE IF NOT EXISTS interactions (userID INT, userMessage TEXT, code TEXT, tiamatResponse TEXT, rating INT, reason TEXT, FOREIGN KEY (userID) REFERENCES users(userID))")
     cursor.connection.commit()
 
     print("Tables created")
@@ -19,8 +19,8 @@ def make_connection(sqlObj):
 
     return cursor
 
-def add_feedback(cursor, conversation_id, message, code, response, rating):
-    cursor.execute("INSERT INTO interactions (userID, userMessage, code, tiamatResponse, rating) VALUES (%s, %s, %s, %s, %s)", (conversation_id, message, code, response, rating))
+def add_feedback(cursor, conversation_id, message, code, response, rating, reason):
+    cursor.execute("INSERT INTO interactions (userID, userMessage, code, tiamatResponse, rating, reason) VALUES (%s, %s, %s, %s, %s, %s)", (conversation_id, message, code, response, rating, reason))
     cursor.connection.commit()
 
     print("Feedback added")
@@ -53,8 +53,8 @@ def check_if_interaction_exists(userID, message, response, code, cursor):
     else:
         return True
     
-def modify_interaction_rating(message, response, code, rating, cursor):
-    cursor.execute("UPDATE interactions SET rating = %s WHERE userMessage = %s AND tiamatResponse = %s AND code = %s", (rating, message, response, code))
+def modify_interaction_rating(message, response, code, rating, reason, cursor):
+    cursor.execute("UPDATE interactions SET rating = %s reason = %s WHERE userMessage = %s AND tiamatResponse = %s AND code = %s", (rating, reason, message, response, code))
     cursor.connection.commit()
 
     print("Rating modified")

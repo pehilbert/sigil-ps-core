@@ -73,31 +73,32 @@ def get_feedback():
 
     # Extract the prompt from the request
     data = flask.request.get_json()
-    conversation_id = data.get('id')
+    user_id = data.get('id')
     message = data.get('message')
     code = data.get('code') or ''
     response = data.get('response')
     rating = data.get('rating')
+    reason = data.get('reason')
     
-    if not message or not conversation_id or not response or rating == None:
+    if not message or not user_id or not response or rating == None or not reason:
         return flask.jsonify({'message': 'Some required data is missing'}), 400
 
-    print(f"Feedback received for conversation {conversation_id}")
+    print(f"Feedback received from user {user_id} for response: {response} (rating: {rating}, reason: {reason})")
     cursor = make_connection(mysql)
     print("Connected to the database")
 
     #checks if user exists in the database, if not, adds them
-    if (check_if_user_exists(conversation_id, cursor) == False):
-        add_user(conversation_id, cursor)
-        print(f"User {conversation_id} added")
+    if (check_if_user_exists(user_id, cursor) == False):
+        add_user(user_id, cursor)
+        print(f"User {user_id} added")
     
     #checks if the interaction already exists in the database, if so, modifies the rating, if not, adds the feedback
-    if (check_if_interaction_exists(conversation_id, message, response, code, cursor)):
-        modify_interaction_rating(message, response, code, rating, cursor)
+    if (check_if_interaction_exists(user_id, message, response, code, cursor)):
+        modify_interaction_rating(message, response, code, rating, reason, cursor)
     else:
-        add_feedback(cursor, conversation_id, message, code, response, rating)
+        add_feedback(cursor, user_id, message, code, response, rating, reason)
 
-    return flask.jsonify({'rating': rating, 'message': message, 'response': response, 'code': code})
+    return flask.jsonify({'rating': rating, 'reason': reason, 'message': message, 'response': response, 'code': code})
 
 # Run the app
 if __name__ == "__main__":
