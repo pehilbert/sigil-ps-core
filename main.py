@@ -7,6 +7,8 @@ from flask_mysqldb import MySQL
 import db_config
 from tiamat_db_functions import *
 
+# Constants
+MAX_FEEDBACK_ENTRIES = 5
 
 # Create the Flask app
 app = flask.Flask(__name__)
@@ -45,8 +47,12 @@ def prompt_tiamat():
     print(f"Code:\n{code}")
     print(f"History:\n{history}")
     
-    # TODO: Retrieve user's personalization instructions from the database
-    personalization = ""
+    # Retrieve user's personalization instructions from the database
+    cursor = make_connection(mysql)
+    personalization = get_personalization(user_id, cursor) or ""
+    cursor.close()
+
+    print(f"Personalization instructions: {personalization}")
     
     # Get chatbot response and log it
     response = chat(
@@ -97,6 +103,25 @@ def get_feedback():
         modify_interaction_rating(message, response, code, rating, reason, cursor)
     else:
         add_feedback(cursor, user_id, message, code, response, rating, reason)
+
+    # Get the user's interactions from the database
+    interactions = get_users_interactions(user_id, cursor, k=MAX_FEEDBACK_ENTRIES)
+
+    print("Interactions fetched from the database:", interactions)
+
+    interactions = [f"Message: {interaction[2]}\nCode: {interaction[3]}\nResponse: {interaction[4]}\nRating: {interaction[5]}\nReason: {interaction[6]}" for interaction in interactions]
+
+    print("Formatted interactions to get personalization instructions:", interactions)
+
+    # Use the interactions to get personalization instructions
+    new_personalization = chat.provide_feedback(interactions).personalization
+
+    # Update personalization instructions in the database
+    update_personalization(user_id, new_personalization, cursor)
+
+    print("Updated personalization instructions:", new_personalization)
+
+    cursor.close()
 
     return flask.jsonify({'rating': rating, 'reason': reason, 'message': message, 'response': response, 'code': code})
 

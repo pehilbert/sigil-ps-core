@@ -5,8 +5,8 @@ def init_database(sqlObj):
 
     cursor.execute("CREATE DATABASE IF NOT EXISTS tiamat_db")
     cursor.execute("USE tiamat_db")
-    cursor.execute("CREATE TABLE IF NOT EXISTS users (userID INT PRIMARY KEY, personalizedPrompt TEXT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS interactions (userID INT, userMessage TEXT, code TEXT, tiamatResponse TEXT, rating INT, reason TEXT, FOREIGN KEY (userID) REFERENCES users(userID))")
+    cursor.execute("CREATE TABLE IF NOT EXISTS users (uid INT AUTO_INCREMENT PRIMARY KEY, userID INT UNIQUE, personalizedPrompt TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS interactions (uid INT AUTO_INCREMENT PRIMARY KEY, userID INT, userMessage TEXT, code TEXT, tiamatResponse TEXT, rating INT, reason TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (userID) REFERENCES users(userID))")
     cursor.connection.commit()
 
     print("Tables created")
@@ -54,9 +54,30 @@ def check_if_interaction_exists(userID, message, response, code, cursor):
         return True
     
 def modify_interaction_rating(message, response, code, rating, reason, cursor):
-    cursor.execute("UPDATE interactions SET rating = %s reason = %s WHERE userMessage = %s AND tiamatResponse = %s AND code = %s", (rating, reason, message, response, code))
+    cursor.execute("UPDATE interactions SET rating = %s, reason = %s WHERE userMessage = %s AND tiamatResponse = %s AND code = %s", (rating, reason, message, response, code))
     cursor.connection.commit()
 
     print("Rating modified")
+
+    return cursor
+
+def get_users_interactions(userID, cursor, k=5):
+    cursor.execute("SELECT * FROM interactions WHERE userID = %s ORDER BY created_at DESC LIMIT %s", (userID, k))
+    result = cursor.fetchall()
+    
+    return result
+
+def get_personalization(userID, cursor):
+    cursor.execute("SELECT personalizedPrompt FROM users WHERE userID = %s", (userID,))
+    result = cursor.fetchall()
+
+    if len(result) == 0:
+        return None
+    
+    return result[0][0]
+
+def update_personalization(userID, prompt, cursor):
+    cursor.execute("UPDATE users SET personalizedPrompt = %s WHERE userID = %s", (prompt, userID))
+    cursor.connection.commit()
 
     return cursor
