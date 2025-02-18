@@ -30,6 +30,12 @@ chat = tiamat.Tiamat()
 # then returns the chatbot's response
 @app.route('/api/prompt', methods=['POST'])
 def prompt_tiamat():
+    try:
+        init_database(mysql)
+    except Exception as e:
+        print("Error occurred while initializing database", e)
+        return flask.jsonify({'message': 'Something went wrong with database initialization'}), 400
+    
     # Extract necessary data from the request
     data = flask.request.get_json()
     user_id = data.get('id')
