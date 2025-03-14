@@ -17,14 +17,15 @@ class Tiamat(dspy.Module):
         self.personalize = dspy.ChainOfThought(Personalize)
         self.answer_question = dspy.Predict(Answer)
     
-    # Given a list of feedback, get personalized instructions to improve future responses
-    def provide_feedback(self, feedback):
+    # Given a list of feedback, and optionally an existing personalized prompt,
+    # get/update personalized prompt to improve future responses
+    def get_personalization_from_feedback(self, feedback, personalization=""):
         feedback_to_provide = feedback
 
         if len(feedback) > self.feedback_capacity:
             feedback_to_provide = feedback[len(feedback) - self.feedback_capacity:]
 
-        output = self.personalize(feedback=feedback_to_provide)
+        output = self.personalize(feedback=feedback_to_provide, existing_personalization=personalization)
         return output
 
     # Given a student message, code, and history, provide an answer to the message
@@ -52,6 +53,8 @@ class Personalize(dspy.Signature):
     """
 
     feedback = dspy.InputField(desc="Feedback provided by the student on previous responses, in the following format:\nResponse: (chatbot response)\n(Helpful/unhelpful): (reason)")
+    existing_personalization = dspy.InputField(desc="Existing personalization instructions for this student")
+
     personalization = dspy.OutputField(desc="Instructions on how to personalize responses for this student")
 
 # Signature to get final answer

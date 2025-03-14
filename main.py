@@ -112,19 +112,22 @@ def get_feedback():
 
     # Get the user's interactions from the database
     interactions = get_users_interactions(user_id, cursor, k=MAX_FEEDBACK_ENTRIES)
-
     print("Interactions fetched from the database:", interactions)
-
     interactions = [f"Message: {interaction[2]}\nCode: {interaction[3]}\nResponse: {interaction[4]}\nRating: {interaction[5]}\nReason: {interaction[6]}" for interaction in interactions]
-
     print("Formatted interactions to get personalization instructions:", interactions)
 
+    # Get existing personalized prompt from the database
+    existing_personalization = get_personalization(user_id, cursor) or ""
+    print("Existing personalization fetched from database:", interactions)
+
     # Use the interactions to get personalization instructions
-    new_personalization = chat.provide_feedback(interactions).personalization
+    result = chat.get_personalization_from_feedback(interactions, existing_personalization)
+    new_personalization = result.personalization
+    reasoning = result.reasoning
+    print("Tiamat reasoned about feedback:", reasoning)
 
     # Update personalization instructions in the database
     update_personalization(user_id, new_personalization, cursor)
-
     print("Updated personalization instructions:", new_personalization)
 
     cursor.close()
