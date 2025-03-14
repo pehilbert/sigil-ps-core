@@ -54,7 +54,7 @@ while True:
             helpful = "Unhelpful"
 
         feedback.append(f"Response: {response}\n{helpful}: {reason}")
-        feedback_result = chat.provide_feedback(feedback)
+        feedback_result = chat.get_personalization_from_feedback(feedback, personalization)
         personalization = feedback_result.personalization
 
         if show_history:
