@@ -15,4 +15,4 @@ COPY . .
 EXPOSE 5000
 
 # Run the application
-CMD ["python", "-u", "main.py"]
+CMD ["python", "-m", "api.main"]

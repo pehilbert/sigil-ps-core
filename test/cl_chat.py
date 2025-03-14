@@ -1,4 +1,4 @@
-from tiamat import Tiamat
+from llm.tiamat import Tiamat
 from dspy import inspect_history
 
 MAX_MSG_LENGTH = 200

@@ -1,11 +1,11 @@
 import flask
-import tiamat as tiamat
+import llm.tiamat as tiamat
 
 from flask_cors import CORS
 
 from flask_mysqldb import MySQL
-import db_config
-from tiamat_db_functions import *
+import api.db_config as db_config
+from api.tiamat_db_functions import *
 
 # Constants
 MAX_FEEDBACK_ENTRIES = 5

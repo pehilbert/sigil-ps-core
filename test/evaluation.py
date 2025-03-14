@@ -1,4 +1,4 @@
-from tiamat import Tiamat
+from llm.tiamat import Tiamat
 import json
 from sys import argv
 
