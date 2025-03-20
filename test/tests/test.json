@@ -1,4 +1,0 @@
-{
-    "datasets": ["./data/test.json", "./data/test2.json"],
-    "metrics": ["./metrics/test.json", "./metrics/test2.json"] 
-}

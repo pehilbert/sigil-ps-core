@@ -2,7 +2,7 @@ from llm.tiamat import Tiamat
 import json
 from sys import argv
 
-from data_handling.dataset_builder import json_to_examples_from_file
+from dataset_util import json_to_examples_from_file
 from metrics_handling.metric_builder import json_to_metric_from_file
 
 '''
