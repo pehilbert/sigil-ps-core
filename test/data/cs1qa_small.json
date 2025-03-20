@@ -1,8 +1,7 @@
 {
     "name": "CS1QA Dataset (Small version)",
     "config": {
-        "example_outputs": true,
-        "actual_outputs": false
+        "example_outputs": true
     },
     "data": [
         {
