@@ -134,6 +134,51 @@ def get_feedback():
 
     return flask.jsonify({'rating': rating, 'reason': reason, 'message': message, 'response': response, 'code': code})
 
+@app.route('/api/personalization/<int:user_id>', methods=['GET'])
+def get_personalization(user_id):
+    print("Request to get personalization for", user_id)
+
+    cursor = make_connection(mysql)
+
+    try:
+        result = get_personalization(user_id, cursor)
+    except Exception as e:
+        cursor.close()
+        
+        print("Error retrieving personalization:", e)
+        return flask.jsonify({'message': 'Something went wrong'}), 500
+    
+    print("Personalization retrieved:", result)
+
+    cursor.close()
+
+    if result == None:
+        return flask.jsonify({'message': 'User not found'}), 404
+    
+    return flask.jsonify({'personalization': result})
+
+@app.route('/api/personalization/<int:user_id>', methods=['PUT'])
+def get_personalization(user_id):
+    print("Request to update personalization for", user_id)
+    print("Data to update:", data)
+
+    data = flask.request.get_json()
+    new_personalization = data.get('personalization')
+
+    cursor = make_connection(mysql)
+
+    try:
+        update_personalization(user_id, new_personalization, cursor)
+        cursor.close()
+
+        print("Personalization updated successfully")
+        return flask.jsonify({'message': 'Personalizatio n updated successfully'}), 200
+    except Exception as e:
+        cursor.close()
+
+        print("Error updating personalization:", e)
+        return flask.jsonify({'message': 'Something went wrong'}), 500
+
 # Run the app
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
