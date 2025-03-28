@@ -13,7 +13,6 @@ Output json file schema
         {
             "question": "",
             "code": "",
-            "context": "",
             "answer": "",    
             "metrics": [
                 {
@@ -70,7 +69,6 @@ def main():
             temp_dict = {
                     "question": example["message"],
                     "code": example["code"],
-                    "context": output["new_context"],
                     "answer": output["answer"],
                     "metrics": [],
                 }
