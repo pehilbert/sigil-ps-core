@@ -135,7 +135,7 @@ def get_feedback():
     return flask.jsonify({'rating': rating, 'reason': reason, 'message': message, 'response': response, 'code': code})
 
 @app.route('/api/personalization/<int:user_id>', methods=['GET'])
-def get_personalization(user_id):
+def personalization_get(user_id):
     print("Request to get personalization for", user_id)
 
     cursor = make_connection(mysql)
@@ -155,19 +155,20 @@ def get_personalization(user_id):
     if result == None:
         return flask.jsonify({'message': 'User not found'}), 404
     
-    return flask.jsonify({'personalization': result})
+    return flask.jsonify({'personalization': {"personalizedPrompt": result}})
 
 @app.route('/api/personalization/<int:user_id>', methods=['PUT'])
-def get_personalization(user_id):
+def personalization_update(user_id):
     print("Request to update personalization for", user_id)
-    print("Data to update:", data)
 
     data = flask.request.get_json()
-    new_personalization = data.get('personalization')
 
-    cursor = make_connection(mysql)
+    print("Data to update:", data)
 
     try:
+        new_personalization = data.get('personalization')["personalizedPrompt"]
+        
+        cursor = make_connection(mysql)
         update_personalization(user_id, new_personalization, cursor)
         cursor.close()
 
