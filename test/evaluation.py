@@ -1,9 +1,28 @@
-from llm.tiamat import Tiamat
-import json
+import sys
+import os
 from sys import argv
+from dotenv import load_dotenv
 
-from dataset_util import json_to_examples_from_file
-from metrics_handling.metric_builder import json_to_metric_from_file
+# Load environment variables from a .env file
+load_dotenv()
+
+# Retrieve the API key from the environment variables
+api_key = os.getenv('OPENAI_API_KEY')
+
+# Set the API key in os.environ
+if api_key:
+    #deepeval needs this to detect the api_key
+    os.environ['OPENAI_API_KEY'] = api_key
+else:
+    raise ValueError("OPENAI_API_KEY not found in the environment variables.")
+
+# Add the parent directory to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# from llm.tiamat import Tiamat
+import json
+
+# from dataset_util import get_actual_outputs_from_file
+from dataset_util import json_to_metric_from_file
 
 '''
 Output json file schema
@@ -37,80 +56,71 @@ Output json file schema
 def main():
     if len(argv) != 3:
         print("Usage: evaluate test.json output.json")
+        return 1
 
+    #load file that contains the data and metric file path
     filename = argv[1]
     file = open(filename)
-    json_data = json.loads(file.read())
+    data_and_metric_json = json.loads(file.read())
     file.close()
 
-    dataset_filenames = json_data["datasets"]
-    metric_filenames = json_data["metrics"]
-
+    #load data from file
+    data_filename = data_and_metric_json["datasets"]
+    file = open(data_filename)
+    json_data = json.loads(file.read())
+    file.close()
+    
+    #load metric from file
+    metric_filenames = data_and_metric_json["metrics"]
+    # metric = json_to_metric_from_file(metric_filenames)
     metrics = [json_to_metric_from_file(metric_file) for metric_file in metric_filenames]
     output_dict = {
         "data": [],
         "overall_metric_score": 0
     }
 
-    for dataset_file in dataset_filenames:
-        dataset = json_to_examples_from_file(dataset_file)
+    metric_totals = {metric["name"]: 0 for metric in metrics}
 
-        # Evaluate database
-        print(f"Evaluating dataset: {dataset['name']}")
+    # loop through dataset
+    for data in json_data["data"]:
 
-        metric_totals = {metric["name"]: 0 for metric in metrics}
-        program = Tiamat()
+        # Create temporary dictionary with all info to store in json data array
+        temp_dict = {
+                "question": data["input"],
+                "code": data["code"],
+                "answer": data["actual_output"],
+                "metrics" : []
+            }
+        
+        # Loop through each metric and evaluate the data
+        for metric in metrics:
+            print(f"metric: {metric}")
+            # Get the metric score for the current data
+            score = metric["evaluate"](data)
+            metric_totals[metric["name"]] += score
+            output_dict["overall_metric_score"] += score
 
-        for example in dataset["data"]:
-            # Get chatbot response based on inputs
-            output = program(example.message, example.code)
-
-            # Create temporary dictionary with all info to store in json data array
-            temp_dict = {
-                    "question": example["message"],
-                    "code": example["code"],
-                    "answer": output["answer"],
-                    "metrics": [],
-                }
-
-
-            # Run response through each metric
-            current_metric_score = 0
-            for metric in metrics:
-                if metric["config"]["needs_example_output"] and not dataset["config"]["example_outputs"]:
-                    raise ValueError("Metric needs example outputs not provided by dataset")
-                
-                # Add score to total for metric
-                score = metric["metric"](example, output)
-                metric_totals[metric["name"]] += score
-                current_metric_score += score
-
-                # Record metric scores and log to Json with data
-                temp_dict["metrics"].append(
+            temp_dict["metrics"].append(
                     {
                         "metric": metric["name"],
                         "metric_score": score
                     }
                 )
-            output_dict["data"].append(temp_dict)
 
+        # Add the metric score to the output dictionary
+        output_dict["data"].append(temp_dict)
+            
 
-        # Log overall score of the evaluation of metrics
-        output_dict["overall_metric_score"] = {metric["name"]: metric_totals[metric["name"]] / len(dataset['data']) for metric in metrics}
+    # Log overall score of the evaluation of metrics
+    output_dict["overall_metric_score"] = {metric["name"]: metric_totals[metric["name"]] / len(json_data['data']) for metric in metrics}
 
-        print(f"Average scores for {dataset['name']}:")
-
-        #loads second file and writes json log object
-        filename = argv[2]
-        file = open(filename, "w", encoding="utf-8")
-
-        json.dump(output_dict, file, indent = 4)
-
-        file.close()
-
-        # Print outs scores after evaluation
-        for metric_name in metric_totals:
-            print(f"{metric_name}: {metric_totals[metric_name]} / {len(dataset['data'])} = {metric_totals[metric_name] / len(dataset['data'])}")
+    
+    #loads second file and writes json log object
+    filename = argv[2]
+    file = open(filename, "w", encoding="utf-8")
+    json.dump(output_dict, file, indent = 4)
+    
+    file.close()
 
 if __name__ == "__main__":
     main()

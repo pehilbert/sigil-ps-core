@@ -1,61 +1,69 @@
 import json
-from llm.tiamat import Tiamat
-from datetime import datetime
+from deepeval.metrics import GEval
+from deepeval.test_case import LLMTestCaseParams
+from deepeval.test_case import LLMTestCase
 
-EXPECTED_DATASET_JSON = '''
+EXPECTED_DATA = '''
 {
-    "name": "Example dataset",
+    "name": "Example Metric",
     "config": {
-        "example_outputs": true
+        "needs_history": true,
+        "needs_example_output": true
     },
-    "data": [
-        {
-            "input": "What is a pointer?",
-            "code": "int var = 2;\nint* ptr = &var;",
-            "output": "A pointer is a memory address.",
-        }
-    ]
+    "metric_description": "How correct the output is",
 }
 '''
 
-# Given JSON representing a dataset, run the data through the LLM and return a list of test cases
-def get_actual_outputs_from_dataset(json_str):
-    json_data = dict(json.loads(json_str))
-    config = json_data["config"]
-    tiamat = Tiamat()
+def json_to_metric(json_str):
+    try:
+        json_data = json.loads(json_str)
 
-    json_data["test_ran_at"] = datetime.now().isoformat()
+        # Create the GEval metric object
+        metric = GEval(
+            name=json_data["name"],
+            criteria=json_data["metric_description"],
+            evaluation_steps=[
+                json_data["metric_description"]
+            ],
+            evaluation_params=[
+                LLMTestCaseParams.INPUT,
+                LLMTestCaseParams.ACTUAL_OUTPUT,
+                LLMTestCaseParams.EXPECTED_OUTPUT
+            ]
+        )
 
-    for data_point in json_data["data"]:
-        if not "input" in data_point:
-            raise ValueError("Missing 'input' key in data point.")
-        
-        if not "code" in data_point:
-            raise ValueError("Missing 'code' key in data point.")
-        
-        if config["example_outputs"] and not "output" in data_point:
-            raise ValueError("Missing 'output' key in data point.")
-        
-        # Use Tiamat to get the actual output for the given input and code
-        tiamat_result = tiamat(message=data_point["input"], code=data_point["code"])
-        data_point["actual_output"] = tiamat_result.answer
+        # Define the evaluation wrapper function
+        def evaluate_metric(in_data):
 
-    return json_data
+            test_case = LLMTestCase(
+                input= in_data["input"],
+                actual_output= in_data["actual_output"],
+                expected_output= in_data["output"]
+            )
+            # Evaluate the test cases using the GEval metric
+            results = metric.measure(test_case)
 
-# Given a filename, read the JSON data from the file and return transformed data with actual outputs
-def get_actual_outputs_from_file(filename):
+            # return scroe found by metric
+            return results
+
+        #return the metric data including function to get metric score
+        return {
+            "name": json_data["name"],
+            "config": json_data["config"],
+            "evaluate": evaluate_metric
+        }
+
+    except json.JSONDecodeError:
+        raise ValueError("Invalid JSON provided. Expected data format:" + EXPECTED_DATA)
+    except KeyError as e:
+        raise ValueError(f"Missing required key in JSON: {e}")
+    
+def json_to_metric_from_file(filename):
     try:
         file = open(filename)
-        data = get_actual_outputs_from_dataset(file.read())
+        data = json_to_metric(file.read())
         file.close()
 
         return data
     except:
         raise IOError("Could not read JSON file")
-
-# Given an input file, generate actual outputs from the inputs in dataset, and write to output file
-def get_actual_outputs_file(input_filename, output_filename):
-    data = get_actual_outputs_from_file(input_filename)
-    
-    with open(output_filename, 'w') as outfile:
-        json.dump(data, outfile, indent=4)
