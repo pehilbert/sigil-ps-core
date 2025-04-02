@@ -1,0 +1,14 @@
+{
+    "name": "Tutor Similarity",
+    "config": {
+        "needs_history": true,
+        "needs_example_output": true
+    },
+    "metric_description": "How well the chatbot responds to the student's question in comparison to the example response from a human tutor. Specifically look for similarity in correctness, tone, and the depth of information provided.",
+    "score": {
+        "type": "scale",
+        "description": "Use these guidelines when scoring with correctness, tone, and depth of information in mind:\n1 - Chatbot gives an incorrect or incomprehensible response, or innapropriate tone for a tutor.\n3 - Chatbot does decently well in comparison to the human tutor, but might be lacking in any one of the specified areas.\n5 - Chatbot does exceedingly well in comparison to the human tutor, accurately embodying the specified qualities from the human tutor.",
+        "min": 1,
+        "max": 5
+    }
+}

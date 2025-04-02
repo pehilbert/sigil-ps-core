@@ -1,4 +1,0 @@
-{
-    "datasets": ["./data/cs1qa.json"],
-    "metrics": ["./metrics/similarity.json"]
-}
