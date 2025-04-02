@@ -11,12 +11,6 @@ EXPECTED_DATA = '''
         "needs_example_output": true
     },
     "metric_description": "How correct the output is",
-    "score": {
-        "type": "scale",
-        "description": "1 is completely incorrect, 5 is completely correct",
-        "min": 1,
-        "max": 5
-    }
 }
 '''
 
@@ -24,7 +18,7 @@ def json_to_metric(json_str):
     try:
         json_data = json.loads(json_str)
 
-        # Create the GEval metric
+        # Create the GEval metric object
         metric = GEval(
             name=json_data["name"],
             criteria=json_data["metric_description"],
@@ -49,10 +43,10 @@ def json_to_metric(json_str):
             # Evaluate the test cases using the GEval metric
             results = metric.measure(test_case)
 
-            print(f"Results: {results}")
-
+            # return scroe found by metric
             return results
 
+        #return the metric data including function to get metric score
         return {
             "name": json_data["name"],
             "config": json_data["config"],

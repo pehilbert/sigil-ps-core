@@ -11,6 +11,7 @@ api_key = os.getenv('OPENAI_API_KEY')
 
 # Set the API key in os.environ
 if api_key:
+    #deepeval needs this to detect the api_key
     os.environ['OPENAI_API_KEY'] = api_key
 else:
     raise ValueError("OPENAI_API_KEY not found in the environment variables.")
@@ -31,23 +32,11 @@ Output json file schema
         {
             "question": "",
             "code": "",
-            "answer": "",    
-            "metrics": [
-                {
-                    "metric": Some metric,
-                    "metric_score": 5
-                },
-                {
-                    "metric": "Some Metric",
-                    "metric_score": 5
-                }
-            ]
-        },
+            "answer": "",
+            "{Metric name}": 0.0
+        }
     ],
-    "overall_metric_score": {
-        "Tutor Similarity": Some score,
-        "Example Metric": Some score
-    }
+    "overall_metric_score": 0.0
 }
 '''
 
@@ -55,15 +44,22 @@ Output json file schema
 def main():
     if len(argv) != 3:
         print("Usage: evaluate test.json output.json")
+        return 1
 
-    #load filename with data that is being evaulated
+    #load file that contains the data and metric file path
     filename = argv[1]
     file = open(filename)
+    data_and_metric_json = json.loads(file.read())
+    file.close()
+
+    #load data from file
+    data_filename = data_and_metric_json["data_file_path"]
+    file = open(data_filename)
     json_data = json.loads(file.read())
     file.close()
     
-    #load filename with metric that will be used to judge
-    metric_filenames = ""
+    #load metric from file
+    metric_filenames = data_and_metric_json["metric_file_path"]
     metric = json_to_metric_from_file(metric_filenames)
     output_dict = {
         "data": [],
