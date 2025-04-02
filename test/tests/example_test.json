@@ -1,0 +1,4 @@
+{
+    "metrics": ["metrics/similarity.json"],
+    "datasets": "test_cases/cs1qa_small_results_v1-0.json"
+}

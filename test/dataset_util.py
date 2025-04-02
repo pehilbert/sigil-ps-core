@@ -21,6 +21,7 @@ def json_to_metric(json_str):
         # Create the GEval metric object
         metric = GEval(
             name=json_data["name"],
+            model="gpt-4o-mini",
             criteria=json_data["metric_description"],
             evaluation_steps=[
                 json_data["metric_description"]
