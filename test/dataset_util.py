@@ -1,5 +1,4 @@
 import json
-import dspy
 from deepeval.metrics import GEval
 from deepeval.test_case import LLMTestCaseParams
 from deepeval.test_case import LLMTestCase
@@ -44,17 +43,19 @@ def json_to_metric(json_str):
 
             test_case = LLMTestCase(
                 input= in_data["input"],
-                actual_output= in_data["code"],
-                expected_output= in_data["actual_output"]
+                actual_output= in_data["actual_output"],
+                expected_output= in_data["output"]
             )
             # Evaluate the test cases using the GEval metric
-            results = metric.evaluate(test_case)
+            results = metric.measure(test_case)
+
+            print(f"Results: {results}")
+
             return results
 
         return {
             "name": json_data["name"],
             "config": json_data["config"],
-            # "metric": metric,
             "evaluate": evaluate_metric
         }
 

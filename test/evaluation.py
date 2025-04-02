@@ -21,7 +21,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import json
 
 # from dataset_util import get_actual_outputs_from_file
-from metrics_handling.metric_builder import json_to_metric_from_file
+from dataset_util import json_to_metric_from_file
 
 '''
 Output json file schema
@@ -78,13 +78,12 @@ def main():
                 "question": data["input"],
                 "code": data["code"],
                 "answer": data["actual_output"],
-                "metric_name": metric["name"],
-                "metrics": 0,
+                metric["name"] : 0
             }
-        
+        print(f"metric: {metric}")
         # Get the metric score for the current data
         score = metric["evaluate"](data)
-        temp_dict["metrics"] = score
+        temp_dict[metric["name"]] = score
         output_dict["overall_metric_score"] += score
 
         # Add the metric score to the output dictionary
