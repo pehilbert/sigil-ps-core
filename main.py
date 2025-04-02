@@ -42,6 +42,7 @@ def prompt_tiamat():
     message = data.get('message')
     code = data.get('code') or ''
     history = data.get('history') or []
+    personalize = data.get('personalize') or False
 
     # Reject request if required data is missing
     if not message or not user_id:
@@ -53,12 +54,17 @@ def prompt_tiamat():
     print(f"Code:\n{code}")
     print(f"History:\n{history}")
     
-    # Retrieve user's personalization instructions from the database
-    cursor = make_connection(mysql)
-    personalization = get_personalization(user_id, cursor) or ""
-    cursor.close()
+    # Retrieve user's personalization instructions from the database if indicated
+    personalization = ""
 
-    print(f"Personalization instructions: {personalization}")
+    if personalize:
+        print("Caller indicated that they want personalization.")
+
+        cursor = make_connection(mysql)
+        personalization = get_personalization(user_id, cursor) or ""
+        cursor.close()
+
+        print(f"Personalized prompt retrieved: {personalization}")
     
     # Get chatbot response and log it
     response = chat(
@@ -91,6 +97,7 @@ def get_feedback():
     response = data.get('response')
     rating = data.get('rating')
     reason = data.get('reason')
+    personalize = data.get('personalize') or False
     
     if not message or not user_id or not response or rating == None or not reason:
         return flask.jsonify({'message': 'Some required data is missing'}), 400
@@ -110,29 +117,79 @@ def get_feedback():
     else:
         add_feedback(cursor, user_id, message, code, response, rating, reason)
 
-    # Get the user's interactions from the database
-    interactions = get_users_interactions(user_id, cursor, k=MAX_FEEDBACK_ENTRIES)
-    print("Interactions fetched from the database:", interactions)
-    interactions = [f"Message: {interaction[2]}\nCode: {interaction[3]}\nResponse: {interaction[4]}\nRating: {interaction[5]}\nReason: {interaction[6]}" for interaction in interactions]
-    print("Formatted interactions to get personalization instructions:", interactions)
+    # If the caller asked for personalization, update personalization for the user
+    if personalize:
+        print("Personalizing based on feedback...")
 
-    # Get existing personalized prompt from the database
-    existing_personalization = get_personalization(user_id, cursor) or ""
-    print("Existing personalization fetched from database:", interactions)
+        # Get the user's interactions from the database
+        interactions = get_users_interactions(user_id, cursor, k=MAX_FEEDBACK_ENTRIES)
+        print("Interactions fetched from the database:", interactions)
+        interactions = [f"Message: {interaction[2]}\nCode: {interaction[3]}\nResponse: {interaction[4]}\nRating: {interaction[5]}\nReason: {interaction[6]}" for interaction in interactions]
+        print("Formatted interactions to get personalization instructions:", interactions)
 
-    # Use the interactions to get personalization instructions
-    result = chat.get_personalization_from_feedback(interactions, existing_personalization)
-    new_personalization = result.personalization
-    reasoning = result.reasoning
-    print("Tiamat reasoned about feedback:", reasoning)
+        # Get existing personalized prompt from the database
+        existing_personalization = get_personalization(user_id, cursor) or ""
+        print("Existing personalization fetched from database:", interactions)
 
-    # Update personalization instructions in the database
-    update_personalization(user_id, new_personalization, cursor)
-    print("Updated personalization instructions:", new_personalization)
+        # Use the interactions to get personalization instructions
+        result = chat.get_personalization_from_feedback(interactions, existing_personalization)
+        new_personalization = result.personalization
+        reasoning = result.reasoning
+        print("Tiamat reasoned about feedback:", reasoning)
+
+        # Update personalization instructions in the database
+        update_personalization(user_id, new_personalization, cursor)
+        print("Updated personalization instructions:", new_personalization)
 
     cursor.close()
 
     return flask.jsonify({'rating': rating, 'reason': reason, 'message': message, 'response': response, 'code': code})
+
+@app.route('/api/personalization/<int:user_id>', methods=['GET'])
+def personalization_get(user_id):
+    print("Request to get personalization for", user_id)
+
+    cursor = make_connection(mysql)
+
+    try:
+        result = get_personalization(user_id, cursor)
+    except Exception as e:
+        cursor.close()
+        
+        print("Error retrieving personalization:", e)
+        return flask.jsonify({'message': 'Something went wrong'}), 500
+    
+    print("Personalization retrieved:", result)
+
+    cursor.close()
+
+    if result == None:
+        return flask.jsonify({'message': 'User not found'}), 404
+    
+    return flask.jsonify({'personalization': {"personalizedPrompt": result}})
+
+@app.route('/api/personalization/<int:user_id>', methods=['PUT'])
+def personalization_update(user_id):
+    print("Request to update personalization for", user_id)
+
+    data = flask.request.get_json()
+
+    print("Data to update:", data)
+
+    try:
+        new_personalization = data.get('personalization')["personalizedPrompt"]
+
+        cursor = make_connection(mysql)
+        update_personalization(user_id, new_personalization, cursor)
+        cursor.close()
+
+        print("Personalization updated successfully")
+        return flask.jsonify({'message': 'Personalization updated successfully'}), 200
+    except Exception as e:
+        cursor.close()
+
+        print("Error updating personalization:", e)
+        return flask.jsonify({'message': 'Something went wrong'}), 500
 
 # Run the app
 if __name__ == "__main__":
