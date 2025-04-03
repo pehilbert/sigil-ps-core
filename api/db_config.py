@@ -37,7 +37,7 @@ class Config(object):
     PASSWORD = os.getenv("MYSQL_PASSWORD")  # fill with your user's password
     PORT = 3306
 
-    CHARSET = 'utf8'
+    CHARSET = 'utf8mb4'
     UNICODE = True
     WARNINGS = True
     CONNECT_TIMEOUT = 10  # Increase the connection timeout to 10 seconds
