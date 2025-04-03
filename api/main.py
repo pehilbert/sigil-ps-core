@@ -7,6 +7,10 @@ from flask_mysqldb import MySQL
 import api.db_config as db_config
 from api.tiamat_db_functions import *
 
+# Disable caching globally to avoid __annotations__ bug
+import litellm
+litellm.cache = None
+
 # Constants
 MAX_FEEDBACK_ENTRIES = 5
 
@@ -18,6 +22,8 @@ app.config['MYSQL_HOST'] = db_config.Config.HOST
 app.config['MYSQL_USER'] = db_config.Config.USER
 app.config['MYSQL_PASSWORD'] = db_config.Config.PASSWORD
 app.config['MYSQL_DB'] = db_config.Config.DATABASE
+app.config['MYSQL_CHARSET'] = db_config.Config.CHARSET
+app.config['MYSQL_USE_UNICODE'] = db_config.Config.UNICODE
 
 mysql = MySQL(app)
 
