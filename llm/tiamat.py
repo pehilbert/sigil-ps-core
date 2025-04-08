@@ -1,6 +1,7 @@
 import dspy
 import sys
 from dotenv import load_dotenv
+from llm.personas import Persona
 
 load_dotenv()
 
@@ -29,13 +30,15 @@ class Tiamat(dspy.Module):
         return output
 
     # Given a student message, code, and history, provide an answer to the message
-    def forward(self, message, code="", history=[], personalization=""):
+    def forward(self, message, persona=Persona(), code="", history=[], personalization=""):
         history_to_provide = history
 
         if len(history) > self.history_capacity:
             history_to_provide = history[len(history) - self.history_capacity:]
 
-        output = self.answer_question(history=history_to_provide, personalization=personalization, student_message=message, code=code)
+        persona_str = f"{persona.name}: {persona.description}\n{persona.prompt}"
+
+        output = self.answer_question(history=history_to_provide, persona=persona_str, personalization=personalization, student_message=message, code=code)
         return output
 
 # Signature to reason about how to best personalize answer for student, given some extra info
@@ -64,17 +67,17 @@ class Personalize(dspy.Signature):
 # Signature to get final answer
 class Answer(dspy.Signature):
     """
-    You are Tiamat, a friendly computer science tutor for novice computer science students. Embody the role of a
-    helpful tutor, while following these guidelines:
+    You are a computer science tutor. Embody the role of a helpful tutor using the given `persona`, while following these general guidelines:
 
-    1. Only provide answers/information that is directly asked for by the student, and when doing so, do not provide direct source code answers.
-    2. Try to respond with guiding questions whenever possible, and feel free to ask the student for any info that would be useful for you in helping them.
+    1. Do not provide complete source code solutions.
+    2. Only respond to what the student explicitly asks.
+    3. Uphold academic integrity at all times — do not assist with cheating, plagiarism, or other misconduct.
 
-    In addition to these base instructions, follow the personalized guidelines provided by the `personalization` field without
-    violating any of the base guidelines.
+    Additionally, follow the personalized instructions in the `personalization` field, so long as they do not conflict with these base guidelines.
     """
 
     history = dspy.InputField(desc="Conversation history for context")
+    persona = dspy.InputField(desc="Persona of the tutor, including their name and any other relevant details")
     personalization = dspy.InputField(desc="Extra guidelines to tailor responses for this student")
 
     code = dspy.InputField(desc="Code provided by the student, usually in the following format:\ndescription of code (file name):\nthe code")
