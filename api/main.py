@@ -36,12 +36,6 @@ chat = tiamat.Tiamat()
 # then returns the chatbot's response
 @app.route('/api/prompt', methods=['POST'])
 def prompt_tiamat():
-    try:
-        init_database(mysql)
-    except Exception as e:
-        print("Error occurred while initializing database", e)
-        return flask.jsonify({'message': 'Something went wrong with database initialization'}), 400
-    
     # Extract necessary data from the request
     data = flask.request.get_json()
     user_id = data.get('id')
@@ -88,12 +82,6 @@ def prompt_tiamat():
 @app.route('/api/feedback', methods=['POST'])
 def get_feedback():
     print("Feedback received")
-    #ensures database is created and tables are initialized
-    try:
-        init_database(mysql)
-    except Exception as e:
-        print("Error occurred while initializing database", e)
-        return flask.jsonify({'message': 'Something went wrong with database initialization'}), 400
 
     # Extract the prompt from the request
     data = flask.request.get_json()
@@ -199,4 +187,14 @@ def personalization_update(user_id):
 
 # Run the app
 if __name__ == "__main__":
+    with app.app_context():
+        print("Initializing database...")
+
+        try:
+            init_database(mysql)
+        except Exception as e:
+            print("Error occurred while initializing database", e)
+            exit(1)
+
+    print("Starting server...")
     app.run(debug=True, host="0.0.0.0", port=5000)
