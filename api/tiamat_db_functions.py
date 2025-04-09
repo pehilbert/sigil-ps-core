@@ -7,11 +7,12 @@ def init_database(sqlObj):
     cursor.execute("USE tiamat_db")
     cursor.execute("CREATE TABLE IF NOT EXISTS users (uid INT AUTO_INCREMENT PRIMARY KEY, userID INT UNIQUE, personalizedPrompt TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS interactions (uid INT AUTO_INCREMENT PRIMARY KEY, userID INT, userMessage TEXT, code TEXT, tiamatResponse TEXT, rating INT, reason TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (userID) REFERENCES users(userID))")
+    cursor.execute("CREATE TABLE IF NOT EXISTS personas (uid INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), description TEXT, prompt TEXT)")
     cursor.connection.commit()
 
-    print("Tables created")
+    print("Database initialized successfully")
 
-    return cursor
+    cursor.close()
 
 def make_connection(sqlObj):
     
