@@ -1,5 +1,6 @@
 import flask
 import llm.tiamat as tiamat
+from llm.personas import Persona
 
 from flask_cors import CORS
 
@@ -43,6 +44,7 @@ def prompt_tiamat():
     code = data.get('code') or ''
     history = data.get('history') or []
     personalize = data.get('personalize') or False
+    persona_name = data.get('persona') or None
 
     # Reject request if required data is missing
     if not message or not user_id:
@@ -53,25 +55,48 @@ def prompt_tiamat():
     print(f"User's message: {message}")
     print(f"Code:\n{code}")
     print(f"History:\n{history}")
+    print(f"Personalize: {personalize}")
+    print(f"Persona name: {persona_name}")
     
     # Retrieve user's personalization instructions from the database if indicated
+    cursor = make_connection(mysql)
+
     personalization = ""
 
     if personalize:
         print("Caller indicated that they want personalization.")
 
-        cursor = make_connection(mysql)
         personalization = get_personalization(user_id, cursor) or ""
-        cursor.close()
 
         print(f"Personalized prompt retrieved: {personalization}")
     
+    # Retrieve persona from the database if provided, otherwise default to Tiamat
+    persona = Persona()
+
+    if persona_name:
+        print(f"Persona name provided: {persona_name}, retrieving from database...")
+        persona_from_db = get_persona(persona_name, cursor)
+
+        if not persona:
+            return flask.jsonify({'message': 'Persona not found'}), 404
+
+        persona = Persona(
+            name=persona_from_db[1],
+            description=persona_from_db[2],
+            prompt=persona_from_db[3]
+        )
+
+    print(f"Persona to use: {persona}")
+
+    cursor.close()
+
     # Get chatbot response and log it
     response = chat(
         message, 
         code=code, 
         history=history, 
-        personalization=personalization
+        personalization=personalization,
+        persona=persona
     )
 
     print(f"Tiamat Response: {response.answer}")

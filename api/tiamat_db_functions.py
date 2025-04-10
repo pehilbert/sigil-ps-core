@@ -82,3 +82,42 @@ def update_personalization(userID, prompt, cursor):
     cursor.connection.commit()
 
     return cursor
+
+def add_persona(name, description, prompt, cursor):
+    cursor.execute("INSERT INTO personas VALUES (%s, %s, %s)", (name, description, prompt))
+    cursor.connection.commit()
+
+    print("Persona added successfully")
+
+    return cursor
+
+def update_persona(name, description, prompt, cursor):
+    cursor.execute("UPDATE personas SET description = %s, prompt = %s WHERE name = %s", (description, prompt, name))
+    cursor.connection.commit()
+
+    print("Persona updated successfully")
+
+    return cursor
+
+def delete_persona(name, cursor):
+    cursor.execute("DELETE FROM personas WHERE name = %s", (name,))
+    cursor.connection.commit()
+
+    print("Persona deleted successfully")
+
+    return cursor
+
+def get_personas(cursor):
+    cursor.execute("SELECT * FROM personas")
+    result = cursor.fetchall()
+
+    return result
+
+def get_persona(name, cursor):
+    cursor.execute("SELECT * FROM personas WHERE name = %s", (name,))
+    result = cursor.fetchall()
+
+    if len(result) == 0:
+        return None
+    
+    return result[0]
