@@ -28,7 +28,7 @@ while True:
     else:
         code = ""
 
-    output = chat(message, code, history, personalization)
+    output = chat(message, code=code, history=history, personalization=personalization)
 
     history.append(f"Student: {message}")
     history.append(f"Tiamat: {output.answer}")

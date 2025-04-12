@@ -7,11 +7,12 @@ def init_database(sqlObj):
     cursor.execute("USE tiamat_db")
     cursor.execute("CREATE TABLE IF NOT EXISTS users (uid INT AUTO_INCREMENT PRIMARY KEY, userID INT UNIQUE, personalizedPrompt TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS interactions (uid INT AUTO_INCREMENT PRIMARY KEY, userID INT, userMessage TEXT, code TEXT, tiamatResponse TEXT, rating INT, reason TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (userID) REFERENCES users(userID))")
+    cursor.execute("CREATE TABLE IF NOT EXISTS personas (uid INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), description TEXT, prompt TEXT)")
     cursor.connection.commit()
 
-    print("Tables created")
+    print("Database initialized successfully")
 
-    return cursor
+    cursor.close()
 
 def make_connection(sqlObj):
     
@@ -81,3 +82,42 @@ def update_personalization(userID, prompt, cursor):
     cursor.connection.commit()
 
     return cursor
+
+def add_persona(name, description, prompt, cursor):
+    cursor.execute("INSERT INTO personas VALUES (%s, %s, %s)", (name, description, prompt))
+    cursor.connection.commit()
+
+    print("Persona added successfully")
+
+    return cursor
+
+def update_persona(name, description, prompt, cursor):
+    cursor.execute("UPDATE personas SET description = %s, prompt = %s WHERE name = %s", (description, prompt, name))
+    cursor.connection.commit()
+
+    print("Persona updated successfully")
+
+    return cursor
+
+def delete_persona(name, cursor):
+    cursor.execute("DELETE FROM personas WHERE name = %s", (name,))
+    cursor.connection.commit()
+
+    print("Persona deleted successfully")
+
+    return cursor
+
+def get_personas(cursor):
+    cursor.execute("SELECT * FROM personas")
+    result = cursor.fetchall()
+
+    return result
+
+def get_persona(name, cursor):
+    cursor.execute("SELECT * FROM personas WHERE name = %s", (name,))
+    result = cursor.fetchall()
+
+    if len(result) == 0:
+        return None
+    
+    return result[0]

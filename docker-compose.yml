@@ -1,18 +1,39 @@
-version: "3.8"
+version: "3.9"
 
 services:
   backend:
-    build: .
-    container_name: tiamat-backend
-    ports:
-      - "5000:5000"
-    depends_on:
-      - db
-    env_file:
-      - .env
+    build:
+      context: .
+      dockerfile: Dockerfile
     volumes:
       - .:/app
-    restart: always
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+
+    # Dev profile
+    profiles: ["dev"]
+    environment:
+      - FLASK_APP=api.main
+      - FLASK_DEBUG=1
+    command: flask run --host=0.0.0.0 --port=5000
+
+  backend-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+
+    # Production profile
+    profiles: ["prod"]
+    environment:
+      - FLASK_APP=api.main
+      - FLASK_DEBUG=0
+    command: gunicorn -w 4 -b 0.0.0.0:5000 api.main:app
 
   db:
     image: mysql:8.0
