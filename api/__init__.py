@@ -1,3 +1,4 @@
+import litellm
 from flask import Flask
 from flask_cors import CORS
 from .util.db_config import Config
@@ -8,6 +9,8 @@ from .extensions import mysql
 
 def create_app():
     app = Flask(__name__)
+
+    litellm.cache = None
 
     # Configure the app
     app.config['MYSQL_HOST'] = Config.HOST
