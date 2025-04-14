@@ -87,14 +87,14 @@ def add_persona(name, description, prompt, cursor):
 
     return cursor
 
-def update_persona(name, description, prompt, cursor):
-    cursor.execute("UPDATE personas SET description = %s, prompt = %s WHERE name = %s", (description, prompt, name))
+def update_persona(id, name, description, prompt, cursor):
+    cursor.execute("UPDATE personas SET name = %s, description = %s, prompt = %s WHERE uid = %s", (name, description, prompt, id))
     cursor.connection.commit()
 
     return cursor
 
-def delete_persona(name, cursor):
-    cursor.execute("DELETE FROM personas WHERE name = %s", (name,))
+def delete_persona(id, cursor):
+    cursor.execute("DELETE FROM personas WHERE uid = %s", (id,))
     cursor.connection.commit()
 
     return cursor
@@ -105,8 +105,8 @@ def get_personas(cursor):
 
     return result
 
-def get_persona(name, cursor):
-    cursor.execute("SELECT * FROM personas WHERE name = %s", (name,))
+def get_persona(id, cursor):
+    cursor.execute("SELECT * FROM personas WHERE uid = %s", (id,))
     result = cursor.fetchall()
 
     if len(result) == 0:

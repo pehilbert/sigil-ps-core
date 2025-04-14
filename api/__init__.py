@@ -7,6 +7,7 @@ from .util.db_config import Config
 from .routes.prompt import prompt_bp
 from .routes.feedback import feedback_bp
 from .routes.personalization import personalization_bp
+from .routes.personas import personas_bp
 from .extensions import mysql
 
 def create_app():
@@ -51,6 +52,7 @@ def create_app():
     app.register_blueprint(prompt_bp, url_prefix='/api')
     app.register_blueprint(feedback_bp, url_prefix='/api')
     app.register_blueprint(personalization_bp, url_prefix='/api')
+    app.register_blueprint(personas_bp, url_prefix='/api')
 
     # Log request info
     @app.before_request
