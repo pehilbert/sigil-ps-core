@@ -1,6 +1,7 @@
 import litellm
 import logging
-from flask import Flask, request, current_app, json
+import os
+from flask import Flask, request, current_app, json, send_from_directory
 from flask_cors import CORS
 from .util.tiamat_db_functions import init_database
 from .util.db_config import Config
@@ -53,14 +54,27 @@ def create_app():
     app.register_blueprint(feedback_bp, url_prefix='/api')
     app.register_blueprint(personalization_bp, url_prefix='/api')
     app.register_blueprint(personas_bp, url_prefix='/api')
+    
+    # Serve UI
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def serve_react_app(path):
+        ui_build_path = os.path.join(os.path.dirname(__file__), 'ui', 'dist')
+        current_app.logger.info(f"Serving React app from: {ui_build_path}")
+        current_app.logger.info(f"Requested path: {path}")
+
+        if path != "" and os.path.exists(os.path.join(ui_build_path, path)):
+            return send_from_directory(ui_build_path, path)
+        else:
+            return send_from_directory(ui_build_path, "index.html")
 
     # Log request info
     @app.before_request
     def log_request_info():
-        current_app.logger.info(f"{request.method} {request.path}")
+        current_app.logger.info(f"Request: {request.method} {request.path}")
 
         if request.query_string:
-            current_app.logger.fino(f"Query: {request.query_string.decode()}")
+            current_app.logger.info(f"Query: {request.query_string.decode()}")
         if request.is_json:
             body = request.get_json(silent=True)
             if body:
