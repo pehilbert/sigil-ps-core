@@ -13,6 +13,10 @@ def get_personas_route():
         personas = get_personas(cursor)
         cursor.close()
 
+        personas = list(personas)
+        for i in range(len(personas)):
+            personas[i] = {"id": personas[i][0], "name": personas[i][1], "description": personas[i][2], "prompt": personas[i][3]}
+
         return jsonify(personas)
     except Exception as e:
         if cursor:

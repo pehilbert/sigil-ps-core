@@ -82,7 +82,7 @@ def update_personalization(userID, prompt, cursor):
     return cursor
 
 def add_persona(name, description, prompt, cursor):
-    cursor.execute("INSERT INTO personas VALUES (%s, %s, %s)", (name, description, prompt))
+    cursor.execute("INSERT INTO personas (name, description, prompt) VALUES (%s, %s, %s)", (name, description, prompt))
     cursor.connection.commit()
 
     return cursor
