@@ -89,7 +89,9 @@ function App() {
           <li key={p.id} className="border p-4 rounded shadow-sm">
             <div className="font-semibold text-lg">{p.name}</div>
             <div className="italic text-sm">{p.description}</div>
-            <div className="text-xs mt-1 text-gray-600">{p.prompt}</div>
+            <div className="text-xs mt-1 text-gray-600" style={{ whiteSpace: 'pre-wrap' }}>
+                {p.prompt}
+            </div>
             <div className="mt-2 space-x-2">
               <button
                 onClick={() => handleEdit(p)}
