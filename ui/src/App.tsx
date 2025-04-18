@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import {API_BASE} from "./config.ts";
 
 type Persona = {
   id: number;
@@ -13,7 +12,8 @@ function App() {
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [form, setForm] = useState({ name: '', description: '', prompt: '' });
   const [editingId, setEditingId] = useState<number | null>(null);
-
+  const API_BASE = import.meta.env.VITE_API_BASE;
+  
   const fetchPersonas = async () => {
     console.log('API_BASE =', API_BASE);
     const res = await axios.get(`${API_BASE}/personas`);
