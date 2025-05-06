@@ -113,3 +113,12 @@ def get_persona(id, cursor):
         return None
     
     return result[0]
+
+def get_persona_by_name(name, cursor):
+    cursor.execute("SELECT * FROM personas WHERE name = %s", (name,))
+    result = cursor.fetchall()
+
+    if len(result) == 0:
+        return None
+    
+    return result[0]
