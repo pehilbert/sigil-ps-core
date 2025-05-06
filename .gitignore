@@ -2,3 +2,5 @@
 .venv
 __pycache__
 .deepeval*
+node_modules
+api/ui/src/config.ts

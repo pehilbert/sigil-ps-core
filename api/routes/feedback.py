@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from api.extensions import mysql
 from api.util.tiamat_db_functions import *
 from llm.tiamat import Tiamat
@@ -18,6 +18,7 @@ def get_feedback():
     personalize = data.get('personalize') or False
 
     if not message or not user_id or not response or rating is None or not reason:
+        current_app.logger.error("Missing required data in feedback request")
         return jsonify({'message': 'Some required data is missing'}), 400
 
     cursor = make_connection(mysql)
