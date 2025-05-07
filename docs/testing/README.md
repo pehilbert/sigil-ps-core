@@ -105,4 +105,4 @@ python evaluation.py /path/to/test.json
 
 The output should look something like this:
 
-![alt text](image.png)
+![alt text](/docs/image.png)
