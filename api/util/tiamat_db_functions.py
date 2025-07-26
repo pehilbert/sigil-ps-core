@@ -46,6 +46,11 @@ def add_user(userID, cursor):
     cursor.connection.commit()
     return cursor
 
+def update_user(userID, username, name, email, cursor):
+    cursor.execute("UPDATE users SET username = %s, name = %s, email = %s WHERE userID = %s", (username, name, email, userID))
+    cursor.connection.commit()
+    return cursor
+
 def check_if_user_exists(userID, cursor):
     cursor.execute("SELECT * FROM users WHERE userID = %s", (userID,))
     result = cursor.fetchall()

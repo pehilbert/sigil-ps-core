@@ -1,6 +1,9 @@
 CREATE TABLE IF NOT EXISTS users (
     uid INT AUTO_INCREMENT PRIMARY KEY, 
     userID INT UNIQUE, 
+    username VARCHAR(255),
+    name VARCHAR(255),
+    email VARCHAR(255),
     personalizedPrompt TEXT
 );
 

@@ -2,7 +2,7 @@ from flask import Blueprint, json, request, jsonify, current_app
 from api.extensions import mysql
 from llm.tiamat import Tiamat
 from llm.personas import Persona
-from api.util.tiamat_db_functions import add_user, check_if_user_exists, make_connection, get_personalization, get_persona_by_name, add_interaction
+from api.util.tiamat_db_functions import add_user, check_if_user_exists, make_connection, get_personalization, get_persona_by_name, add_interaction, update_user
 
 prompt_bp = Blueprint('prompt', __name__)
 chat = Tiamat()
@@ -18,6 +18,7 @@ def prompt_tiamat():
     log_chat = data.get('logChat')
     personalize = data.get('personalize') or False
     persona_name = data.get('persona') or None
+    user_metadata = data.get('userMetaData') or {}
 
     # have to do this because if we do an 'or True', it will always be True
     if log_chat is None:
@@ -56,7 +57,9 @@ def prompt_tiamat():
         try:
             if not check_if_user_exists(user_id, cursor):
                 add_user(user_id, cursor)
-                
+            
+            update_user(user_id, user_metadata.get('login'), user_metadata.get('name'), user_metadata.get('email'), cursor)
+
             interaction_metadata = jsonify({
                 "persona_used": persona.name,
                 "personalization": personalization
