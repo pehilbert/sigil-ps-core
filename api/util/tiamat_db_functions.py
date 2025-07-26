@@ -3,18 +3,21 @@ from flask import current_app
 #RUN THIS FIRST TO CREATE THE DATABASE
 def init_database(sqlObj):
     cursor = None
-
     try:
         cursor = sqlObj.connection.cursor()
 
         cursor.execute("CREATE DATABASE IF NOT EXISTS tiamat_db")
         cursor.execute("USE tiamat_db")
-        cursor.execute("CREATE TABLE IF NOT EXISTS users (uid INT AUTO_INCREMENT PRIMARY KEY, userID INT UNIQUE, personalizedPrompt TEXT)")
-        cursor.execute("CREATE TABLE IF NOT EXISTS interactions (uid INT AUTO_INCREMENT PRIMARY KEY, userID INT, userMessage TEXT, code TEXT, tiamatResponse TEXT, rating INT, reason TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (userID) REFERENCES users(userID))")
-        cursor.execute("CREATE TABLE IF NOT EXISTS personas (uid INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), description TEXT, prompt TEXT)")
-        cursor.connection.commit()
 
-        cursor.close()
+        with open('api/util/schema.sql', 'r') as schema_file:
+            schema = schema_file.read()
+
+            # Split statements and filter out empty ones
+            statements = [stmt.strip() for stmt in schema.split(';') if stmt.strip()]
+            for statement in statements:
+                cursor.execute(statement)
+
+        cursor.connection.commit()
     except Exception as e:
         current_app.logger.error("Error initializing database", exc_info=True)
         raise
@@ -26,8 +29,15 @@ def make_connection(sqlObj):
     cursor = sqlObj.connection.cursor()
     return cursor
 
-def add_feedback(cursor, conversation_id, message, code, response, rating, reason):
-    cursor.execute("INSERT INTO interactions (userID, userMessage, code, tiamatResponse, rating, reason) VALUES (%s, %s, %s, %s, %s, %s)", (conversation_id, message, code, response, rating, reason))
+def add_interaction(cursor, user_id, conversation_id, message, code, response, rating, reason, metadata=""):
+    if not check_if_conversation_exists(conversation_id, cursor):
+        cursor.execute("INSERT INTO conversations (uid, userID) VALUES (%s, %s)", (conversation_id, user_id))
+    else:
+        cursor.execute("UPDATE conversations SET last_interaction = CURRENT_TIMESTAMP WHERE uid = %s", (conversation_id,))
+    
+    cursor.execute("INSERT INTO interactions (userID, conversationID, userMessage, code, tiamatResponse, rating, reason, metadata) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", 
+                   (user_id, conversation_id, message, code, response, rating, reason, metadata))
+
     cursor.connection.commit()
     return cursor
 
@@ -45,8 +55,8 @@ def check_if_user_exists(userID, cursor):
     else:
         return True
 
-def check_if_interaction_exists(userID, message, response, code, cursor):
-    cursor.execute("SELECT * FROM interactions WHERE userMessage = %s AND tiamatResponse = %s AND code = %s AND userID = %s", (message, response, code, userID))
+def check_if_conversation_exists(conversationID, cursor):
+    cursor.execute("SELECT * FROM conversations WHERE uid = %s", (conversationID,))
     result = cursor.fetchall()
 
     if len(result) == 0:
@@ -54,14 +64,30 @@ def check_if_interaction_exists(userID, message, response, code, cursor):
     else:
         return True
     
-def modify_interaction_rating(message, response, code, rating, reason, cursor):
-    cursor.execute("UPDATE interactions SET rating = %s, reason = %s WHERE userMessage = %s AND tiamatResponse = %s AND code = %s", (rating, reason, message, response, code))
+def check_if_interaction_exists(conversationID, message, response, code, cursor):
+    cursor.execute("SELECT * FROM interactions WHERE userMessage = %s AND tiamatResponse = %s AND code = %s AND conversationID = %s", (message, response, code, conversationID))
+    result = cursor.fetchall()
+
+    if len(result) == 0:
+        return False
+    else:
+        return True
+    
+def modify_interaction_rating(conversationID, message, response, code, rating, reason, cursor):
+    cursor.execute("UPDATE interactions SET rating = %s, reason = %s WHERE conversationID = %s AND userMessage = %s AND tiamatResponse = %s AND code = %s", 
+                   (rating, reason, conversationID, message, response, code))
     cursor.connection.commit()
 
     return cursor
 
 def get_users_interactions(userID, cursor, k=5):
     cursor.execute("SELECT * FROM interactions WHERE userID = %s ORDER BY created_at DESC LIMIT %s", (userID, k))
+    result = cursor.fetchall()
+    
+    return result
+
+def get_conversation_interactions(conversationID, cursor, k=5):
+    cursor.execute("SELECT * FROM interactions WHERE conversationID = %s ORDER BY created_at DESC LIMIT %s", (conversationID, k))
     result = cursor.fetchall()
     
     return result
