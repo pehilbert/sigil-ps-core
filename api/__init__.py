@@ -3,7 +3,7 @@ import logging
 import os
 from flask import Flask, request, current_app, json
 from flask_cors import CORS
-from .util.tiamat_db_functions import init_database
+from .util.db_util import init_database
 from .util.db_config import Config
 from .routes.prompt import prompt_bp
 from .routes.feedback import feedback_bp

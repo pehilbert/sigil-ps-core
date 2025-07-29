@@ -1,14 +1,14 @@
 from flask import Blueprint, json, request, jsonify, current_app
 from api.extensions import mysql
-from llm.tiamat import Tiamat
+from llm.sigil import Sigil
 from llm.personas import Persona
-from api.util.tiamat_db_functions import add_user, check_if_user_exists, make_connection, get_personalization, get_persona_by_name, add_interaction, update_user
+from api.util.db_util import add_user, check_if_user_exists, make_connection, get_personalization, get_persona_by_name, add_interaction, update_user
 
 prompt_bp = Blueprint('prompt', __name__)
-chat = Tiamat()
+chat = Sigil()
 
 @prompt_bp.route('/prompt', methods=['POST'])
-def prompt_tiamat():
+def prompt_sigil():
     data = request.get_json()
     user_id = data.get('userID')
     conversation_id = data.get('conversationID')
@@ -17,7 +17,7 @@ def prompt_tiamat():
     history = data.get('history') or []
     log_chat = data.get('logChat') or False
     personalize = data.get('personalize') or False
-    persona_name = data.get('persona') or None
+    persona_name = data.get('persona') or Persona().name # Default to the default persona
     user_metadata = data.get('userMetaData') or {}
 
     if not message or not user_id or not conversation_id:
@@ -27,19 +27,18 @@ def prompt_tiamat():
     cursor = make_connection(mysql)
     personalization = get_personalization(user_id, cursor) if personalize else ""
 
+    # Fall back to default persona if no persona is specified or persona not found
     persona = Persona()
-    if persona_name:
-        persona_from_db = get_persona_by_name(persona_name, cursor)
-        if not persona_from_db:
-            cursor.close()
-            
-            current_app.logger.error(f"Persona {persona_name} not found")
-            return jsonify({'message': 'Persona not found'}), 404
+    persona_from_db = get_persona_by_name(persona_name, cursor)
+
+    if persona_from_db:
         persona = Persona(
             name=persona_from_db[1],
             description=persona_from_db[2],
             prompt=persona_from_db[3]
         )
+    else:
+        current_app.logger.warning(f"Persona {persona_name} not found")
 
     response = chat(
         message, 
