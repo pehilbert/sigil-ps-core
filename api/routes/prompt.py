@@ -15,14 +15,10 @@ def prompt_tiamat():
     message = data.get('message')
     code = data.get('code') or ''
     history = data.get('history') or []
-    log_chat = data.get('logChat')
+    log_chat = data.get('logChat') or False
     personalize = data.get('personalize') or False
     persona_name = data.get('persona') or None
     user_metadata = data.get('userMetaData') or {}
-
-    # have to do this because if we do an 'or True', it will always be True
-    if log_chat is None:
-        log_chat = True
 
     if not message or not user_id or not conversation_id:
         current_app.logger.error("Missing required data in prompt request")
