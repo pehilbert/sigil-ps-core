@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS interactions (
     conversationID VARCHAR(255), 
     userMessage TEXT, 
     code TEXT, 
-    tiamatResponse TEXT, 
+    botResponse TEXT, 
     rating INT, 
     reason TEXT, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

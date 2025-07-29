@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify, current_app
 from api.extensions import mysql
-from api.util.tiamat_db_functions import *
-from llm.tiamat import Tiamat
+from api.util.db_util import *
+from llm.sigil import Sigil
 
 feedback_bp = Blueprint('feedback', __name__)
-chat = Tiamat()
+chat = Sigil()
 
 @feedback_bp.route('/feedback', methods=['POST'])
 def get_feedback():

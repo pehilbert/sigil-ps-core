@@ -1,4 +1,5 @@
 from flask import current_app
+from llm.personas import Persona
 
 #RUN THIS FIRST TO CREATE THE DATABASE
 def init_database(sqlObj):
@@ -6,8 +7,8 @@ def init_database(sqlObj):
     try:
         cursor = sqlObj.connection.cursor()
 
-        cursor.execute("CREATE DATABASE IF NOT EXISTS tiamat_db")
-        cursor.execute("USE tiamat_db")
+        cursor.execute("CREATE DATABASE IF NOT EXISTS sigil_db")
+        cursor.execute("USE sigil_db")
 
         with open('api/util/schema.sql', 'r') as schema_file:
             schema = schema_file.read()
@@ -17,6 +18,15 @@ def init_database(sqlObj):
             for statement in statements:
                 cursor.execute(statement)
 
+        # Add default persona
+        default_persona = Persona()
+        add_persona(
+            name=default_persona.name,
+            description=default_persona.description,
+            prompt=default_persona.prompt,
+            cursor=cursor
+        )
+        
         cursor.connection.commit()
     except Exception as e:
         current_app.logger.error("Error initializing database", exc_info=True)
@@ -35,7 +45,7 @@ def add_interaction(cursor, user_id, conversation_id, message, code, response, r
     else:
         cursor.execute("UPDATE conversations SET last_interaction = CURRENT_TIMESTAMP WHERE uid = %s", (conversation_id,))
     
-    cursor.execute("INSERT INTO interactions (userID, conversationID, userMessage, code, tiamatResponse, rating, reason, metadata) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", 
+    cursor.execute("INSERT INTO interactions (userID, conversationID, userMessage, code, botResponse, rating, reason, metadata) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", 
                    (user_id, conversation_id, message, code, response, rating, reason, metadata))
 
     cursor.connection.commit()
@@ -70,7 +80,7 @@ def check_if_conversation_exists(conversationID, cursor):
         return True
     
 def check_if_interaction_exists(conversationID, message, response, code, cursor):
-    cursor.execute("SELECT * FROM interactions WHERE userMessage = %s AND tiamatResponse = %s AND code = %s AND conversationID = %s", (message, response, code, conversationID))
+    cursor.execute("SELECT * FROM interactions WHERE userMessage = %s AND botResponse = %s AND code = %s AND conversationID = %s", (message, response, code, conversationID))
     result = cursor.fetchall()
 
     if len(result) == 0:
@@ -79,7 +89,7 @@ def check_if_interaction_exists(conversationID, message, response, code, cursor)
         return True
     
 def modify_interaction_rating(conversationID, message, response, code, rating, reason, cursor):
-    cursor.execute("UPDATE interactions SET rating = %s, reason = %s WHERE conversationID = %s AND userMessage = %s AND tiamatResponse = %s AND code = %s", 
+    cursor.execute("UPDATE interactions SET rating = %s, reason = %s WHERE conversationID = %s AND userMessage = %s AND botResponse = %s AND code = %s", 
                    (rating, reason, conversationID, message, response, code))
     cursor.connection.commit()
 
