@@ -20,13 +20,17 @@ def init_database(sqlObj):
 
         # Add default persona
         default_persona = Persona()
-        add_persona(
-            name=default_persona.name,
-            description=default_persona.description,
-            prompt=default_persona.prompt,
-            cursor=cursor
-        )
-        
+
+        if not get_persona_by_name(default_persona.name, cursor):
+            current_app.logger.info(f"Adding default persona: {default_persona.name}")
+            
+            add_persona(
+                name=default_persona.name,
+                description=default_persona.description,
+                prompt=default_persona.prompt,
+                cursor=cursor
+            )
+            
         cursor.connection.commit()
     except Exception as e:
         current_app.logger.error("Error initializing database", exc_info=True)

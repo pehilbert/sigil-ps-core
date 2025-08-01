@@ -3,7 +3,7 @@ version: "3.9"
 services:
   # --- API: DEV ---
   api:
-    container_name: sigil-cs2-api-dev
+    container_name: sigil-ps-api-dev
     build:
       context: .
       dockerfile: api/Dockerfile
@@ -27,7 +27,7 @@ services:
 
   # --- API: PROD ---
   api-prod:
-    container_name: sigil-cs2-api-prod
+    container_name: sigil-ps-api-prod
     build:
       context: .
       dockerfile: api/Dockerfile
@@ -48,7 +48,7 @@ services:
 
   # --- Frontend: DEV ---
   ui:
-    container_name: sigil-cs2-ui-dev
+    container_name: sigil-ps-ui-dev
     build:
         context: ./ui
         target: dev
@@ -65,7 +65,7 @@ services:
 
   # --- Frontend: PROD ---
   ui-prod:
-    container_name: sigil-cs2-ui-prod
+    container_name: sigil-ps-ui-prod
     build:
       context: ./ui
       target: prod
@@ -78,12 +78,12 @@ services:
       - appnet
     restart: always
     depends_on:
-      - api
+      - api-prod
 
   # --- Database (shared) ---
   db:
     image: mysql:8.0
-    container_name: sigil-cs2-mysql
+    container_name: sigil-ps-mysql
     ports:
       - "3306"
     env_file:
